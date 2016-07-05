@@ -9,9 +9,31 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include <string>
+#include <iostream>
+#include <fstream>
 
 GLuint shader_programme;
 GLuint vao;
+
+std::string load_shader(const std::string& path)
+{
+	std::string line;
+	std::string program;
+	std::ifstream src(path);
+
+	if (src.is_open())
+	{
+		while (std::getline(src, line))
+		{
+			program += line;
+			program += "\n";
+		}
+		src.close();
+	}
+	
+	return program;
+}
 
 std::vector<float> square(const float x, const float y, const float w, const float h) 
 {
@@ -51,19 +73,11 @@ void initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-	const char* vertex_shader =
-		"#version 450\n"
-		"in vec2 vp;"
-		"void main () {"
-		"  gl_Position = vec4 (vp, 0.0, 1.0);"
-		"}";
+	std::string vert = load_shader("../main.vert");
+	std::string frag = load_shader("../main.frag");
 
-	const char* fragment_shader =
-		"#version 450\n"
-		"out vec4 frag_colour;"
-		"void main () {"
-		"  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
-		"}";
+	const char* vertex_shader = vert.c_str();
+	const char* fragment_shader = frag.c_str();
 
 	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &vertex_shader, NULL);
