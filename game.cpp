@@ -1,16 +1,91 @@
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
+
 #ifdef _WIN32
+#define GLEW_STATIC 1
 #include <windows.h>
 #endif
-#include <GL/gl.h>
-#endif
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <vector>
+
+GLuint shader_programme;
+GLuint vao;
+
+std::vector<float> square(const float x, const float y, const float w, const float h) 
+{
+
+	std::vector<float> verts = {
+		x,			y,
+		(x - w),	y,
+		x,			(y - h),
+		x,			(y - h),
+		(x - w),	(y),
+		(x - w),	(y - h)
+	};
+
+	return verts;
+}
+
+void initialize()
+{
+
+	std::vector<float> vss = square(0.0f, 0.0f, 0.4f, 0.4f);
+
+	float* points = &vss[0];
+
+	GLuint vbo = 0;
+
+	// Insert n number of unused names to vbo
+	glGenBuffers(1, &vbo);
+	// Acquire buffer state (alternatively glCreateBuffer() to do both)
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	// Allocate mutable data store
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), points, GL_STATIC_DRAW);
+
+	vao = 0;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	const char* vertex_shader =
+		"#version 450\n"
+		"in vec2 vp;"
+		"void main () {"
+		"  gl_Position = vec4 (vp, 0.0, 1.0);"
+		"}";
+
+	const char* fragment_shader =
+		"#version 450\n"
+		"out vec4 frag_colour;"
+		"void main () {"
+		"  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+		"}";
+
+	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vs, 1, &vertex_shader, NULL);
+	glCompileShader(vs);
+	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fs, 1, &fragment_shader, NULL);
+	glCompileShader(fs);
+
+	shader_programme = glCreateProgram();
+	glAttachShader(shader_programme, fs);
+	glAttachShader(shader_programme, vs);
+	glLinkProgram(shader_programme);
+}
+
+void render()
+{
+	glClearColor(255, 255, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(shader_programme);
+	glBindVertexArray(vao);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
 static void error_callback(int error, const char* description)
 {
@@ -27,38 +102,34 @@ int main(void)
 {
     GLFWwindow* window;
     glfwSetErrorCallback(error_callback);
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    
+	if (!glfwInit()) exit(EXIT_FAILURE);
+
+    window = glfwCreateWindow(640, 480, "Sunstone 2D Demo", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(window);
+
+	glewExperimental = GL_TRUE;
+	GLenum glew_status = glewInit();
+	if (glew_status != GLEW_OK) {
+		fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
+		exit(EXIT_FAILURE);
+	}
+
+	initialize();
+
     glfwSetKeyCallback(window, key_callback);
     while (!glfwWindowShouldClose(window))
     {
-        float ratio;
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(-ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glRotatef((float) glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
-        glBegin(GL_TRIANGLES);
-        glColor3f(1.f, 0.f, 0.f);
-        glVertex3f(-0.6f, -0.4f, 0.f);
-        glColor3f(0.f, 1.f, 0.f);
-        glVertex3f(0.6f, -0.4f, 0.f);
-        glColor3f(0.f, 0.f, 1.f);
-        glVertex3f(0.f, 0.6f, 0.f);
-        glEnd();
+		        
+		render();
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
