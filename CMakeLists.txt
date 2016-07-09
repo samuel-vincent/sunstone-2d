@@ -6,6 +6,8 @@ add_subdirectory(./libs/glfw)
 include_directories(./libs/glfw ./)
 target_link_libraries(sunstone-2d glfw ${GLFW_LIBRARIES})
 
+set_property(TARGET sunstone-2d PROPERTY CXX_STANDARD 11)	
+
 if (APPLE)
    target_link_libraries(sunstone-2d stdc++ "-framework OpenGL" "-framework Cocoa")
 elseif (WIN32)
