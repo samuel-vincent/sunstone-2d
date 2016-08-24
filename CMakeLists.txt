@@ -3,7 +3,8 @@ project (sunstone-2d)
 add_executable(sunstone-2d game.cpp glew.c)
 
 add_subdirectory(./libs/glfw)
-include_directories(./libs/glfw ./)
+add_subdirectory(./libs/glm)
+include_directories(./libs/glfw ./libs/glm ./)
 target_link_libraries(sunstone-2d glfw ${GLFW_LIBRARIES})
 
 set_property(TARGET sunstone-2d PROPERTY CXX_STANDARD 11)	

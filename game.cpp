@@ -12,6 +12,9 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 GLuint shader_programme;
 GLuint vao;
@@ -37,7 +40,6 @@ std::string load_shader(const std::string& path)
 
 std::vector<float> square(const float x, const float y, const float w, const float h) 
 {
-
   std::vector<float> verts = {
     x,			y,
     (x - w),	y,
@@ -46,18 +48,22 @@ std::vector<float> square(const float x, const float y, const float w, const flo
     (x - w),	(y),
     (x - w),	(y - h)
   };
-
   return verts;
 }
 
 void initialize()
 {
 
-  std::vector<float> vss = square(0.0f, 0.0f, 0.4f, 0.4f);
+  std::vector<float> vss = square(-0.1f, -0.1f, 0.2f, 0.2f);
 
   float* points = &vss[0];
 
   GLuint vbo = 0;
+
+  //glm::vec4 pt(100, 100, 0, 0);
+  //glm::vec4 tpt = ortho * pt;
+  //std::cout << glm::to_string(tpt) << std::endl;
+
 
   // Insert n number of unused names to vbo
   glGenBuffers(1, &vbo);
@@ -91,6 +97,12 @@ void initialize()
   glAttachShader(shader_programme, fs);
   glAttachShader(shader_programme, vs);
   glLinkProgram(shader_programme);
+
+  GLuint mvp_handle = glGetUniformLocation(shader_programme, "MVP");
+  glm::mat4 projection = glm::ortho(0.f, 400.f, 0.f, 400.f, 0.f, 100.f);
+  glm::mat4 model = glm::mat4(1.0f);
+  glm::mat4 mvp = projection * model;
+  glUniformMatrix4fv(mvp_handle, 1, GL_FALSE, &mvp[0][0]);
 }
 
 void render()
