@@ -1,2 +1,2 @@
-rm -Rf .\libs
-rm -Rf .\build
+rmdir /s /q .\libs
+rmdir /s /q .\build
