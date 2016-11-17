@@ -1,4 +1,6 @@
 
+#define GLM_ENABLE_EXPERIMENTAL 1
+
 #ifdef _WIN32
 #define GLEW_STATIC 1
 #include <windows.h>
